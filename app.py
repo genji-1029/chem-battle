@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import streamlit.components.v1 as components
 
-# --- ゲームの設定データ (100問規模) ---
+# --- ゲームの設定データ (100問フルセット) ---
 QUESTIONS = {
     "Level 1 (初級: 各50点)": [
         {"latex": r"H_2 + O_2 \rightarrow H_2O", "reactants": ["H₂", "O₂"], "products": ["H₂O"], "answers": [2, 1, 2], "point": 50},
@@ -33,12 +33,36 @@ QUESTIONS = {
         {"latex": r"H_2 + Cl_2 \rightarrow HCl", "reactants": ["H₂", "Cl₂"], "products": ["HCl"], "answers": [1, 1, 2], "point": 50},
         {"latex": r"Mg + N_2 \rightarrow Mg_3N_2", "reactants": ["Mg", "N₂"], "products": ["Mg₃N₂"], "answers": [3, 1, 1], "point": 50},
         {"latex": r"Li + O_2 \rightarrow Li_2O", "reactants": ["Li", "O₂"], "products": ["Li₂O"], "answers": [4, 1, 2], "point": 50},
+        {"latex": r"Na + O_2 \rightarrow Na_2O", "reactants": ["Na", "O₂"], "products": ["Na₂O"], "answers": [4, 1, 2], "point": 50},
+        {"latex": r"Ag + S \rightarrow Ag_2S", "reactants": ["Ag", "S"], "products": ["Ag₂S"], "answers": [2, 1, 1], "point": 50},
+        {"latex": r"Ca + O_2 \rightarrow CaO", "reactants": ["Ca", "O₂"], "products": ["CaO"], "answers": [2, 1, 2], "point": 50},
+        {"latex": r"Ba + O_2 \rightarrow BaO", "reactants": ["Ba", "O₂"], "products": ["BaO"], "answers": [2, 1, 2], "point": 50},
+        {"latex": r"Zn + S \rightarrow ZnS", "reactants": ["Zn", "S"], "products": ["ZnS"], "answers": [1, 1, 1], "point": 50},
+        {"latex": r"N_2 + O_2 \rightarrow NO", "reactants": ["N₂", "O₂"], "products": ["NO"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"C + H_2 \rightarrow CH_4", "reactants": ["C", "H₂"], "products": ["CH₄"], "answers": [1, 2, 1], "point": 50},
+        {"latex": r"H_2 + F_2 \rightarrow HF", "reactants": ["H₂", "F₂"], "products": ["HF"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"H_2 + Br_2 \rightarrow HBr", "reactants": ["H₂", "Br₂"], "products": ["HBr"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"H_2 + I_2 \rightarrow HI", "reactants": ["H₂", "I₂"], "products": ["HI"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"N_2O_4 \rightarrow NO_2", "reactants": ["N₂O₄"], "products": ["NO₂"], "answers": [1, 2], "point": 50},
+        {"latex": r"O_2 \rightarrow O_3", "reactants": ["O₂"], "products": ["O₃"], "answers": [3, 2], "point": 50},
+        {"latex": r"CO_2 + C \rightarrow CO", "reactants": ["CO₂", "C"], "products": ["CO"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"Fe + Cl_2 \rightarrow FeCl_3", "reactants": ["Fe", "Cl₂"], "products": ["FeCl₃"], "answers": [2, 3, 2], "point": 50},
+        {"latex": r"Al + Cl_2 \rightarrow AlCl_3", "reactants": ["Al", "Cl₂"], "products": ["AlCl₃"], "answers": [2, 3, 2], "point": 50},
+        {"latex": r"Na + Cl_2 \rightarrow NaCl", "reactants": ["Na", "Cl₂"], "products": ["NaCl"], "answers": [2, 1, 2], "point": 50},
+        {"latex": r"P + Cl_2 \rightarrow PCl_3", "reactants": ["P", "Cl₂"], "products": ["PCl₃"], "answers": [2, 3, 2], "point": 50},
+        {"latex": r"P + Cl_2 \rightarrow PCl_5", "reactants": ["P", "Cl₂"], "products": ["PCl₅"], "answers": [2, 5, 2], "point": 50},
+        {"latex": r"Si + Cl_2 \rightarrow SiCl_4", "reactants": ["Si", "Cl₂"], "products": ["SiCl₄"], "answers": [1, 2, 1], "point": 50},
+        {"latex": r"H_2O_2 \rightarrow H_2O + O_2", "reactants": ["H₂O₂"], "products": ["H₂O", "O₂"], "answers": [2, 2, 1], "point": 50},
+        {"latex": r"Cu + AgNO_3 \rightarrow Cu(NO_3)_2 + Ag", "reactants": ["Cu", "AgNO₃"], "products": ["Cu(NO₃)₂", "Ag"], "answers": [1, 2, 1, 2], "point": 50},
+        {"latex": r"CH_4 + Cl_2 \rightarrow CH_3Cl + HCl", "reactants": ["CH₄", "Cl₂"], "products": ["CH₃Cl", "HCl"], "answers": [1, 1, 1, 1], "point": 50},
+        {"latex": r"Fe_3O_4 + H_2 \rightarrow Fe + H_2O", "reactants": ["Fe₃O₄", "H₂"], "products": ["Fe", "H₂O"], "answers": [1, 4, 3, 4], "point": 50},
+        {"latex": r"Na_2O + H_2O \rightarrow NaOH", "reactants": ["Na₂O", "H₂O"], "products": ["NaOH"], "answers": [1, 1, 2], "point": 50},
+        {"latex": r"CaO + H_2O \rightarrow Ca(OH)_2", "reactants": ["CaO", "H₂O"], "products": ["Ca(OH)₂"], "answers": [1, 1, 1], "point": 50},
     ],
     "Level 2 (中級: 各150点)": [
         {"latex": r"Mg + HCl \rightarrow MgCl_2 + H_2", "reactants": ["Mg", "HCl"], "products": ["MgCl₂", "H₂"], "answers": [1, 2, 1, 1], "point": 150},
         {"latex": r"Zn + HCl \rightarrow ZnCl_2 + H_2", "reactants": ["Zn", "HCl"], "products": ["ZnCl₂", "H₂"], "answers": [1, 2, 1, 1], "point": 150},
-        {"latex": r"AgNO_3 + Cu \rightarrow Cu(NO_3)_2 + Ag", "reactants": ["AgNO₃", "Cu"], "products": ["Cu(NO₃)₂", "Ag"], "answers": [2, 1, 1, 2], "point": 150},
-        {"latex": r"H_2O_2 \rightarrow H_2O + O_2", "reactants": ["H₂O₂"], "products": ["H₂O", "O₂"], "answers": [2, 2, 1], "point": 150},
+        {"latex": r"Al + HCl \rightarrow AlCl_3 + H_2", "reactants": ["Al", "HCl"], "products": ["AlCl₃", "H₂"], "answers": [2, 6, 2, 3], "point": 150},
         {"latex": r"C_2H_5OH + O_2 \rightarrow CO_2 + H_2O", "reactants": ["C₂H₅OH", "O₂"], "products": ["CO₂", "H₂O"], "answers": [1, 3, 2, 3], "point": 150},
         {"latex": r"Al + H_2SO_4 \rightarrow Al_2(SO_4)_3 + H_2", "reactants": ["Al", "H₂SO₄"], "products": ["Al₂(SO₄)₃", "H₂"], "answers": [2, 3, 1, 3], "point": 150},
         {"latex": r"NaOH + H_2SO_4 \rightarrow Na_2SO_4 + H_2O", "reactants": ["NaOH", "H₂SO₄"], "products": ["Na₂SO₄", "H₂O"], "answers": [2, 1, 1, 2], "point": 150},
@@ -60,10 +84,35 @@ QUESTIONS = {
         {"latex": r"Cu + H_2SO_4 \rightarrow CuSO_4 + H_2O + SO_2", "reactants": ["Cu", "H₂SO₄"], "products": ["CuSO₄", "H₂O", "SO₂"], "answers": [1, 2, 1, 2, 1], "point": 150},
         {"latex": r"CaCO_3 + HCl \rightarrow CaCl_2 + H_2O + CO_2", "reactants": ["CaCO₃", "HCl"], "products": ["CaCl₂", "H₂O", "CO₂"], "answers": [1, 2, 1, 1, 1], "point": 150},
         {"latex": r"K + H_2O \rightarrow KOH + H_2", "reactants": ["K", "H₂O"], "products": ["KOH", "H₂"], "answers": [2, 2, 2, 1], "point": 150},
+        {"latex": r"Na + H_2O \rightarrow NaOH + H_2", "reactants": ["Na", "H₂O"], "products": ["NaOH", "H₂"], "answers": [2, 2, 2, 1], "point": 150},
+        {"latex": r"Ba(OH)_2 + H_2SO_4 \rightarrow BaSO_4 + H_2O", "reactants": ["Ba(OH)₂", "H₂SO₄"], "products": ["BaSO₄", "H₂O"], "answers": [1, 1, 1, 2], "point": 150},
+        {"latex": r"NaCl + AgNO_3 \rightarrow AgCl + NaNO_3", "reactants": ["NaCl", "AgNO₃"], "products": ["AgCl", "NaNO₃"], "answers": [1, 1, 1, 1], "point": 150},
+        {"latex": r"AgNO_3 + CaCl_2 \rightarrow AgCl + Ca(NO_3)_2", "reactants": ["AgNO₃", "CaCl₂"], "products": ["AgCl", "Ca(NO₃)₂"], "answers": [2, 1, 2, 1], "point": 150},
+        {"latex": r"Cu + HNO_3 \rightarrow Cu(NO_3)_2 + H_2O + NO", "reactants": ["Cu", "HNO₃"], "products": ["Cu(NO₃)₂", "H₂O", "NO"], "answers": [3, 8, 3, 4, 2], "point": 150},
+        {"latex": r"Cu + HNO_3 \rightarrow Cu(NO_3)_2 + H_2O + NO_2", "reactants": ["Cu", "HNO₃"], "products": ["Cu(NO₃)₂", "H₂O", "NO₂"], "answers": [1, 4, 1, 2, 2], "point": 150},
+        {"latex": r"KMnO_4 + HCl \rightarrow KCl + MnCl_2 + H_2O + Cl_2", "reactants": ["KMnO₄", "HCl"], "products": ["KCl", "MnCl₂", "H₂O", "Cl₂"], "answers": [2, 16, 2, 2, 8, 5], "point": 150},
+        {"latex": r"K_2Cr_2O_7 + HCl \rightarrow KCl + CrCl_3 + H_2O + Cl_2", "reactants": ["K₂Cr₂O₇", "HCl"], "products": ["KCl", "CrCl₃", "H₂O", "Cl₂"], "answers": [1, 14, 2, 2, 7, 3], "point": 150},
+        {"latex": r"SO_2 + H_2S \rightarrow S + H_2O", "reactants": ["SO₂", "H₂S"], "products": ["S", "H₂O"], "answers": [1, 2, 3, 2], "point": 150},
+        {"latex": r"Cl_2 + H_2O \rightarrow HCl + HClO", "reactants": ["Cl₂", "H₂O"], "products": ["HCl", "HClO"], "answers": [1, 1, 1, 1], "point": 150},
+        {"latex": r"CuSO_4 + H_2S \rightarrow CuS + H_2SO_4", "reactants": ["CuSO₄", "H₂S"], "products": ["CuS", "H₂SO₄"], "answers": [1, 1, 1, 1], "point": 150},
+        {"latex": r"FeS + HCl \rightarrow FeCl_2 + H_2S", "reactants": ["FeS", "HCl"], "products": ["FeCl₂", "H₂S"], "answers": [1, 2, 1, 1], "point": 150},
+        {"latex": r"NH_4Cl + Ca(OH)_2 \rightarrow CaCl_2 + H_2O + NH_3", "reactants": ["NH₄Cl", "Ca(OH)₂"], "products": ["CaCl₂", "H₂O", "NH₃"], "answers": [2, 1, 1, 2, 2], "point": 150},
+        {"latex": r"CaF_2 + H_2SO_4 \rightarrow CaSO_4 + HF", "reactants": ["CaF₂", "H₂SO₄"], "products": ["CaSO₄", "HF"], "answers": [1, 1, 1, 2], "point": 150},
+        {"latex": r"Ca_3(PO_4)_2 + H_2SO_4 \rightarrow CaSO_4 + H_3PO_4", "reactants": ["Ca₃(PO₄)₂", "H₂SO₄"], "products": ["CaSO₄", "H₃PO₄"], "answers": [1, 3, 3, 2], "point": 150},
+        {"latex": r"Fe_2O_3 + C \rightarrow Fe + CO_2", "reactants": ["Fe₂O₃", "C"], "products": ["Fe", "CO₂"], "answers": [2, 3, 4, 3], "point": 150},
+        {"latex": r"Fe_2O_3 + C \rightarrow Fe + CO", "reactants": ["Fe₂O₃", "C"], "products": ["Fe", "CO"], "answers": [1, 3, 2, 3], "point": 150},
+        {"latex": r"Na_2CO_3 + HCl \rightarrow NaCl + H_2O + CO_2", "reactants": ["Na₂CO₃", "HCl"], "products": ["NaCl", "H₂O", "CO₂"], "answers": [1, 2, 2, 1, 1], "point": 150},
+        {"latex": r"KClO_3 \rightarrow KCl + O_2", "reactants": ["KClO₃"], "products": ["KCl", "O₂"], "answers": [2, 2, 3], "point": 150},
+        {"latex": r"Mg(OH)_2 + HCl \rightarrow MgCl_2 + H_2O", "reactants": ["Mg(OH)₂", "HCl"], "products": ["MgCl₂", "H₂O"], "answers": [1, 2, 1, 2], "point": 150},
+        {"latex": r"Al_2O_3 + HCl \rightarrow AlCl_3 + H_2O", "reactants": ["Al₂O₃", "HCl"], "products": ["AlCl₃", "H₂O"], "answers": [1, 6, 2, 3], "point": 150},
+        {"latex": r"Al(OH)_3 + H_2SO_4 \rightarrow Al_2(SO_4)_3 + H_2O", "reactants": ["Al(OH)₃", "H₂SO₄"], "products": ["Al₂(SO₄)₃", "H₂O"], "answers": [2, 3, 1, 6], "point": 150},
+        {"latex": r"SiCl_4 + H_2O \rightarrow SiO_2 + HCl", "reactants": ["SiCl₄", "H₂O"], "products": ["SiO₂", "HCl"], "answers": [1, 2, 1, 4], "point": 150},
+        {"latex": r"P_4O_{10} + H_2O \rightarrow H_3PO_4", "reactants": ["P₄O₁₀", "H₂O"], "products": ["H₃PO₄"], "answers": [1, 6, 4], "point": 150},
+        {"latex": r"Ca(OH)_2 + CO_2 \rightarrow CaCO_3 + H_2O", "reactants": ["Ca(OH)₂", "CO₂"], "products": ["CaCO₃", "H₂O"], "answers": [1, 1, 1, 1], "point": 150},
+        {"latex": r"NaOH + CO_2 \rightarrow Na_2CO_3 + H_2O", "reactants": ["NaOH", "CO₂"], "products": ["Na₂CO₃", "H₂O"], "answers": [2, 1, 1, 1], "point": 150},
     ]
 }
 
-# --- 音声再生用コンポーネント ---
 def play_sound(sound_type):
     sounds = {
         "correct": "https://actions.google.com/sounds/v1/cartoon/wood_plank_flick.ogg",
@@ -100,17 +149,13 @@ def init_game():
     if 'last_result' not in st.session_state: st.session_state['last_result'] = None
 
 def get_new_question():
-    # 6問目から中級へ
     count = st.session_state['correct_count']
     level_key = "Level 1 (初級: 各50点)" if count < 6 else "Level 2 (中級: 各150点)"
     all_q = QUESTIONS[level_key]
-    
-    # 重複回避ロジック
     available_indices = [i for i in range(len(all_q)) if i not in st.session_state['used_indices']]
     if not available_indices:
         st.session_state['used_indices'] = []
         available_indices = list(range(len(all_q)))
-    
     chosen_idx = random.choice(available_indices)
     st.session_state['used_indices'].append(chosen_idx)
     st.session_state['current_q'] = all_q[chosen_idx]
@@ -122,9 +167,20 @@ def main():
 
     if not st.session_state['game_started']:
         st.title("⚔️ 化学反応バトル")
-        st.write("3分間で全50問以上の反応式を攻略せよ！")
+        ranking_df = load_ranking()
+        if not ranking_df.empty:
+            top_player = ranking_df.iloc[0]['Name']
+            top_score = ranking_df.iloc[0]['Score']
+            st.markdown(f"""
+                <div style="background-color:#FFF9C4; padding:15px; border-radius:10px; border:2px solid #FBC02D; text-align:center; margin-bottom:20px;">
+                    <span style="font-size:1.2rem; color:#f57f17; font-weight:bold;">👑 現在の歴代最高記録 👑</span><br>
+                    <span style="font-size:1.5rem; font-weight:bold; color:black;">{top_player} さん</span><br>
+                    <span style="font-size:2rem; font-weight:bold; color:#d32f2f;">{top_score}点</span>
+                </div>
+            """, unsafe_allow_html=True)
+        st.write("3分間でハイスコアを目指せ！(全100問)")
         name = st.text_input("ニックネームを入力", max_chars=10)
-        if st.button("スタート！", use_container_width=True):
+        if st.button("ゲームスタート！", use_container_width=True):
             if name.strip():
                 st.session_state['player_name'] = name
                 st.session_state['game_started'] = True
@@ -142,7 +198,6 @@ def main():
         save_ranking(st.session_state['player_name'], st.session_state['score'])
         play_sound("finish")
 
-    # タイマーとスコア
     c1, c2, c3 = st.columns(3)
     c1.metric("🏆 Score", st.session_state['score'])
     if remaining_time <= 30:
@@ -156,18 +211,17 @@ def main():
         st.balloons()
         st.error(f"⌛ タイムアップ！ スコア: {st.session_state['score']}")
         st.table(load_ranking().head(5))
-        if st.button("もう一度遊ぶ"):
+        if st.button("タイトルに戻る"):
             for key in list(st.session_state.keys()): del st.session_state[key]
             st.rerun()
         return
 
-    # 中央の大きな正解・不正解表示
     if st.session_state['last_result'] == "correct":
-        st.success("✨ 正解！！ 次の問題へ ✨")
+        st.success("✨ 正解！！ ✨")
         play_sound("correct")
         st.session_state['last_result'] = None
     elif st.session_state['last_result'] == "wrong":
-        st.error("💥 係数が違うぞ！ -50点 💥")
+        st.error("💥 係数が違うぞ！ 💥")
         play_sound("wrong")
         st.session_state['last_result'] = None
 
