@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import time
 
-# --- ゲームの設定データ（初級・中級を大幅増量） ---
+# --- ゲームの設定データ ---
 QUESTIONS = {
     "Level 1 (初級: 各50点)": [
         {"latex": r"H_2 + O_2 \rightarrow H_2O", "reactants": ["H₂", "O₂"], "products": ["H₂O"], "answers": [2, 1, 2], "point": 50},
@@ -46,20 +46,29 @@ def init_game():
     if 'correct_count' not in st.session_state: st.session_state['correct_count'] = 0
     if 'start_time' not in st.session_state: st.session_state['start_time'] = time.time()
     if 'game_over' not in st.session_state: st.session_state['game_over'] = False
+    if 'used_indices' not in st.session_state: st.session_state['used_indices'] = []
     if 'current_q' not in st.session_state: 
-        st.session_state['current_q'] = random.choice(QUESTIONS["Level 1 (初級: 各50点)"])
+        get_new_question()
 
-def next_question():
+def get_new_question():
     count = st.session_state['correct_count']
-    # 5問正解するまでは初級、それ以降はずっと中級
-    if count < 5:
-        level = "Level 1 (初級: 各50点)"
-    else:
-        level = "Level 2 (中級: 各150点)"
-    st.session_state['current_q'] = random.choice(QUESTIONS[level])
+    level_key = "Level 1 (初級: 各50点)" if count < 5 else "Level 2 (中級: 各150点)"
+    
+    # そのレベルの問題全リストのインデックス
+    all_q = QUESTIONS[level_key]
+    available_indices = [i for i in range(len(all_q)) if i not in st.session_state['used_indices']]
+    
+    # もし全問題を使い切ったらリストをリセット
+    if not available_indices:
+        st.session_state['used_indices'] = []
+        available_indices = list(range(len(all_q)))
+    
+    chosen_idx = random.choice(available_indices)
+    st.session_state['used_indices'].append(chosen_idx)
+    st.session_state['current_q'] = all_q[chosen_idx]
 
 def main():
-    st.set_page_config(page_title="化学反応バトル：タイムアタック")
+    st.set_page_config(page_title="化学反応バトル")
     init_game()
     
     TIME_LIMIT = 180 
@@ -69,7 +78,7 @@ def main():
     if remaining_time <= 0:
         st.session_state['game_over'] = True
 
-    st.title("⚔️ 化学反応バトル：タイムアタック")
+    st.title("⚔️ 化学反応バトル")
     
     c1, c2, c3 = st.columns(3)
     c1.metric("🏆 Score", st.session_state['score'])
@@ -77,7 +86,8 @@ def main():
     c3.metric("✅ 正解数", st.session_state['correct_count'])
 
     if st.session_state['game_over']:
-        st.error(f"⌛ タイムアップ！最終スコア: {st.session_state['score']}")
+        st.balloons()
+        st.error(f"⌛ タイムアップ！ 最終スコア: {st.session_state['score']}")
         if st.button("もう一度挑戦"):
             for key in list(st.session_state.keys()): del st.session_state[key]
             st.rerun()
@@ -99,14 +109,15 @@ def main():
             points_won = q['point'] + remaining_time
             st.session_state['score'] += points_won
             st.session_state['correct_count'] += 1
-            st.success(f"✅ 正解！ +{points_won}点！")
-            next_question()
-            time.sleep(0.8)
+            st.success(f"✅ 正解！ +{points_won}点")
+            get_new_question() # ここで重複チェックして次へ
+            time.sleep(0.5)
             st.rerun()
         else:
             st.session_state['score'] = max(0, st.session_state['score'] - 50)
-            st.error("❌ 係数が違います！ 50点減点...")
+            st.error("❌ 係数が違います！ -50点")
 
+    # 1秒おきにリロードしてタイマーを進める
     if not st.session_state['game_over']:
         time.sleep(1)
         st.rerun()
