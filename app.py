@@ -121,6 +121,7 @@ QUESTIONS_MOL = {
     ]
 }
 
+# --- 音声・ランキング機能 ---
 def play_sound(sound_type):
     sounds = {
         "correct": "https://actions.google.com/sounds/v1/cartoon/wood_plank_flick.ogg",
@@ -132,7 +133,7 @@ def play_sound(sound_type):
 
 def load_ranking(mode):
     file = f'ranking_{mode}.csv'
-    if not os.path.exists(file) or os.stat(file).st_size == 0:
+    if not os.path.exists(file) or os.stat(file).st_size <= 5:
         return pd.DataFrame(columns=['Name', 'Score'])
     try: return pd.read_csv(file)
     except: return pd.DataFrame(columns=['Name', 'Score'])
@@ -175,6 +176,7 @@ def main():
     st.set_page_config(page_title="化学・最強決定戦", layout="centered")
     init_session()
 
+    # --- メニュー画面 ---
     if st.session_state['page'] == 'menu':
         st.title("🧪 化学・最強決定戦")
         st.write("挑戦するモードを選んでください")
@@ -185,6 +187,7 @@ def main():
             st.session_state['page'] = 'start_mol'; st.rerun()
         return
 
+    # --- スタート画面 ---
     if st.session_state['page'].startswith('start'):
         mode = 'chem' if 'chem' in st.session_state['page'] else 'mol'
         st.title("🔥 エントリー")
@@ -205,6 +208,7 @@ def main():
             st.session_state['page'] = 'menu'; st.rerun()
         return
 
+    # --- ゲーム本編 ---
     mode = 'chem' if 'play_chem' in st.session_state['page'] else 'mol'
     rem = max(0, int(180 - (time.time() - st.session_state['start_time'])))
 
@@ -225,8 +229,20 @@ def main():
         if st.button("タイトルに戻る"):
             init_session(force_reset=True)
             st.rerun()
+        
+        # --- 管理者リセット機能 ---
+        st.markdown("---")
+        with st.expander("🛠 管理者メニュー"):
+            pw = st.text_input("パスワードを入力してランキングリセット", type="password")
+            if pw == "20001029":
+                if st.button("🚨 このモードのランキングを全消去"):
+                    if os.path.exists(f'ranking_{mode}.csv'):
+                        os.remove(f'ranking_{mode}.csv')
+                    st.success("削除しました。ブラウザを更新してください。")
+                    st.rerun()
         return
 
+    # 正誤演出
     if st.session_state['last_result'] == "OK":
         st.success("✨ 正解！！")
         play_sound("correct")
@@ -273,20 +289,4 @@ def main():
     st.rerun()
 
 if __name__ == "__main__":
-    main()# --- app.py の最後の方、main() 関数内の「タイトルに戻る」ボタンのあたりに追加 ---
-
-        if st.button("タイトルに戻る"):
-            init_session(force_reset=True)
-            st.rerun()
-            
-        # --- ここから追加：管理者用リセット機能 ---
-        st.markdown("---")
-        with st.expander("🛠 管理者メニュー"):
-            pw = st.text_input("パスワードを入力してランキングリセット", type="password")
-            if pw == "admin123": # ここでお好きなパスワードに変更してください
-                if st.button("🚨 ランキングを全消去する"):
-                    if os.path.exists(f'ranking_{mode}.csv'):
-                        os.remove(f'ranking_{mode}.csv')
-                    st.warning("ランキングを削除しました。再読み込みしてください。")
-                    st.rerun()
-
+    main()
