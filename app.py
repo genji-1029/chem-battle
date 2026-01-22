@@ -1,6 +1,8 @@
 import streamlit as st
 import random
 import time
+import pandas as pd
+import os
 
 # --- ゲームの設定データ ---
 QUESTIONS = {
@@ -41,28 +43,34 @@ QUESTIONS = {
     ]
 }
 
+def load_ranking():
+    if not os.path.exists('ranking.csv') or os.stat('ranking.csv').st_size == 0:
+        return pd.DataFrame(columns=['Name', 'Score'])
+    return pd.read_csv('ranking.csv')
+
+def save_ranking(name, score):
+    df = load_ranking()
+    new_data = pd.DataFrame({'Name': [name], 'Score': [score]})
+    df = pd.concat([df, new_data], ignore_index=True)
+    df = df.sort_values(by='Score', ascending=False).head(10) # 上位10位まで保存
+    df.to_csv('ranking.csv', index=False)
+
 def init_game():
+    if 'game_started' not in st.session_state: st.session_state['game_started'] = False
     if 'score' not in st.session_state: st.session_state['score'] = 0
     if 'correct_count' not in st.session_state: st.session_state['correct_count'] = 0
-    if 'start_time' not in st.session_state: st.session_state['start_time'] = time.time()
     if 'game_over' not in st.session_state: st.session_state['game_over'] = False
     if 'used_indices' not in st.session_state: st.session_state['used_indices'] = []
-    if 'current_q' not in st.session_state: 
-        get_new_question()
+    if 'player_name' not in st.session_state: st.session_state['player_name'] = ""
 
 def get_new_question():
     count = st.session_state['correct_count']
     level_key = "Level 1 (初級: 各50点)" if count < 5 else "Level 2 (中級: 各150点)"
-    
-    # そのレベルの問題全リストのインデックス
     all_q = QUESTIONS[level_key]
     available_indices = [i for i in range(len(all_q)) if i not in st.session_state['used_indices']]
-    
-    # もし全問題を使い切ったらリストをリセット
     if not available_indices:
         st.session_state['used_indices'] = []
         available_indices = list(range(len(all_q)))
-    
     chosen_idx = random.choice(available_indices)
     st.session_state['used_indices'].append(chosen_idx)
     st.session_state['current_q'] = all_q[chosen_idx]
@@ -70,15 +78,33 @@ def get_new_question():
 def main():
     st.set_page_config(page_title="化学反応バトル")
     init_game()
-    
+
+    # --- スタート画面 ---
+    if not st.session_state['game_started']:
+        st.title("⚔️ 化学反応バトル")
+        st.write("3分間で何点取れるか挑戦しよう！")
+        name = st.text_input("ニックネームを入力してね", max_chars=10)
+        if st.button("ゲームスタート！"):
+            if name:
+                st.session_state['player_name'] = name
+                st.session_state['game_started'] = True
+                st.session_state['start_time'] = time.time()
+                get_new_question()
+                st.rerun()
+            else:
+                st.warning("ニックネームを入力してください！")
+        return
+
+    # --- ゲーム本編 ---
     TIME_LIMIT = 180 
     elapsed_time = time.time() - st.session_state['start_time']
     remaining_time = max(0, int(TIME_LIMIT - elapsed_time))
 
-    if remaining_time <= 0:
+    if remaining_time <= 0 and not st.session_state['game_over']:
         st.session_state['game_over'] = True
+        save_ranking(st.session_state['player_name'], st.session_state['score'])
 
-    st.title("⚔️ 化学反応バトル")
+    st.title(f"👤 プレイヤー: {st.session_state['player_name']}")
     
     c1, c2, c3 = st.columns(3)
     c1.metric("🏆 Score", st.session_state['score'])
@@ -87,8 +113,14 @@ def main():
 
     if st.session_state['game_over']:
         st.balloons()
-        st.error(f"⌛ タイムアップ！ 最終スコア: {st.session_state['score']}")
-        if st.button("もう一度挑戦"):
+        st.error(f"⌛ タイムアップ！ {st.session_state['player_name']}さんのスコア: {st.session_state['score']}")
+        
+        st.subheader("🏆 全国トップ5ランキング")
+        ranking_df = load_ranking()
+        if not ranking_df.empty:
+            st.table(ranking_df.head(5))
+        
+        if st.button("タイトルに戻る"):
             for key in list(st.session_state.keys()): del st.session_state[key]
             st.rerun()
         return
@@ -110,14 +142,13 @@ def main():
             st.session_state['score'] += points_won
             st.session_state['correct_count'] += 1
             st.success(f"✅ 正解！ +{points_won}点")
-            get_new_question() # ここで重複チェックして次へ
+            get_new_question()
             time.sleep(0.5)
             st.rerun()
         else:
             st.session_state['score'] = max(0, st.session_state['score'] - 50)
             st.error("❌ 係数が違います！ -50点")
 
-    # 1秒おきにリロードしてタイマーを進める
     if not st.session_state['game_over']:
         time.sleep(1)
         st.rerun()
